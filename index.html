@@ -1,1 +1,952 @@
-se
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practik App — Gestión inteligente para kioscos y comercios</title>
+<meta name="description" content="Practik App simplifica la gestión de tu kiosco: inventario, código de barras, stock, ventas y métricas en un solo lugar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0B0B0B;
+    --green:#003B1F;
+    --green-light:#0C5A33;
+    --gold:#F2B705;
+    --paper:#F5F1E6;
+    --paper-dim:#E7E1CF;
+    --ink:#EDEAE0;
+    --ink-muted:#93A896;
+    --line:rgba(237,234,224,0.14);
+    --radius:2px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--black);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    line-height:1.5;
+    overflow-x:hidden;
+  }
+
+  .mono{font-family:'Space Mono', monospace;}
+
+  a{color:inherit; text-decoration:none;}
+
+  img,svg{display:block; max-width:100%;}
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+
+  ::selection{background:var(--gold); color:var(--black);}
+
+  :focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:3px;
+  }
+
+  /* ---------- barcode divider ---------- */
+  .barcode{
+    height:26px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--ink) 0px, var(--ink) 2px,
+      transparent 2px, transparent 5px,
+      var(--ink) 5px, var(--ink) 6px,
+      transparent 6px, transparent 10px,
+      var(--ink) 10px, var(--ink) 13px,
+      transparent 13px, transparent 15px
+    );
+    opacity:0.9;
+  }
+  .barcode.dark{
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--green) 0px, var(--green) 2px,
+      transparent 2px, transparent 5px,
+      var(--green) 5px, var(--green) 6px,
+      transparent 6px, transparent 10px,
+      var(--green) 10px, var(--green) 13px,
+      transparent 13px, transparent 15px
+    );
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:rgba(11,11,11,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 0;
+  }
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:1.05rem;
+    letter-spacing:0.02em;
+  }
+  .logo-mark{
+    width:30px; height:30px;
+    background:var(--gold);
+    border-radius:var(--radius);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--black);
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:0.95rem;
+  }
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap:36px;
+    font-size:0.92rem;
+  }
+  .nav-links a{
+    color:var(--ink-muted);
+    transition:color 0.2s ease;
+    position:relative;
+  }
+  .nav-links a:hover{color:var(--ink);}
+  .nav-cta{
+    background:var(--gold);
+    color:var(--black) !important;
+    padding:10px 18px;
+    border-radius:var(--radius);
+    font-weight:700;
+    font-size:0.88rem;
+  }
+  .nav-cta:hover{background:#FFC93C;}
+
+  .nav-toggle{
+    display:none;
+    background:none;
+    border:1px solid var(--line);
+    width:40px; height:40px;
+    color:var(--ink);
+    border-radius:var(--radius);
+    font-size:1.1rem;
+    cursor:pointer;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    background:linear-gradient(180deg, var(--green) 0%, var(--black) 88%);
+    padding:96px 0 0;
+    position:relative;
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.05fr 0.85fr;
+    gap:60px;
+    align-items:start;
+    padding-bottom:80px;
+  }
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:8px; height:8px;
+    background:var(--gold);
+    border-radius:50%;
+    display:inline-block;
+  }
+  .hero h1{
+    font-size:clamp(2.4rem, 5vw, 3.6rem);
+    line-height:1.06;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    margin-bottom:24px;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--gold);
+  }
+  .hero p{
+    font-size:1.12rem;
+    color:var(--ink-muted);
+    max-width:480px;
+    margin-bottom:34px;
+  }
+  .hero-actions{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    padding:15px 26px;
+    border-radius:var(--radius);
+    font-weight:700;
+    font-size:0.95rem;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .btn-primary{
+    background:var(--gold);
+    color:var(--black);
+  }
+  .btn-primary:hover{
+    background:#FFC93C;
+    box-shadow:0 6px 22px rgba(242,183,5,0.28);
+  }
+  .btn-ghost{
+    border:1px solid var(--line);
+    color:var(--ink);
+  }
+  .btn-ghost:hover{
+    border-color:var(--gold);
+    color:var(--gold);
+  }
+
+  .hero-stats{
+    display:flex;
+    gap:36px;
+    margin-top:56px;
+    padding-top:28px;
+    border-top:1px solid rgba(237,234,224,0.12);
+  }
+  .hero-stat b{
+    display:block;
+    font-family:'Space Mono', monospace;
+    font-size:1.5rem;
+    color:var(--gold);
+  }
+  .hero-stat span{
+    font-size:0.82rem;
+    color:var(--ink-muted);
+  }
+
+  /* ---------- receipt (signature element) ---------- */
+  .receipt-holder{
+    display:flex;
+    justify-content:center;
+    perspective:1400px;
+  }
+  .receipt{
+    background:var(--paper);
+    color:var(--black);
+    width:100%;
+    max-width:340px;
+    font-family:'Space Mono', monospace;
+    font-size:0.83rem;
+    box-shadow:0 30px 60px rgba(0,0,0,0.45);
+    transform:rotate(2.2deg);
+    position:relative;
+    clip-path: polygon(
+      0% 0%, 100% 0%, 100% 98%,
+      96% 100%, 92% 98%, 88% 100%, 84% 98%, 80% 100%,
+      76% 98%, 72% 100%, 68% 98%, 64% 100%, 60% 98%,
+      56% 100%, 52% 98%, 48% 100%, 44% 98%, 40% 100%,
+      36% 98%, 32% 100%, 28% 98%, 24% 100%, 20% 98%,
+      16% 100%, 12% 98%, 8% 100%, 4% 98%, 0% 100%
+    );
+    padding:26px 24px 40px;
+  }
+  .receipt-top{
+    text-align:center;
+    border-bottom:1px dashed rgba(0,0,0,0.35);
+    padding-bottom:16px;
+    margin-bottom:16px;
+  }
+  .receipt-top .r-brand{
+    font-weight:700;
+    letter-spacing:0.08em;
+    font-size:0.95rem;
+  }
+  .receipt-top .r-sub{
+    color:#4B4B4B;
+    font-size:0.72rem;
+    margin-top:6px;
+  }
+  .receipt-line{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:7px 0;
+    opacity:0;
+    transform:translateY(6px);
+    animation:printLine 0.5s ease forwards;
+  }
+  .receipt-line .r-name{flex:1;}
+  .receipt-line .r-val{color:var(--green); font-weight:700;}
+  .receipt-line.n1{animation-delay:0.15s;}
+  .receipt-line.n2{animation-delay:0.35s;}
+  .receipt-line.n3{animation-delay:0.55s;}
+  .receipt-line.n4{animation-delay:0.75s;}
+  .receipt-line.n5{animation-delay:0.95s;}
+  @keyframes printLine{
+    to{opacity:1; transform:translateY(0);}
+  }
+  .receipt-divider{
+    border-top:1px dashed rgba(0,0,0,0.35);
+    margin:14px 0;
+  }
+  .receipt-total{
+    display:flex;
+    justify-content:space-between;
+    font-weight:700;
+    font-size:1rem;
+    padding-top:4px;
+  }
+  .receipt-total .r-val{color:var(--black);}
+  .receipt-barcode{
+    margin-top:22px;
+    height:34px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      #111 0px, #111 2px,
+      transparent 2px, transparent 4px,
+      #111 4px, #111 5px,
+      transparent 5px, transparent 8px,
+      #111 8px, #111 11px,
+      transparent 11px, transparent 13px
+    );
+  }
+  .receipt-code{
+    text-align:center;
+    font-size:0.68rem;
+    letter-spacing:0.3em;
+    margin-top:6px;
+    color:#4B4B4B;
+  }
+
+  @media(prefers-reduced-motion: reduce){
+    .receipt-line{opacity:1; transform:none; animation:none;}
+    html{scroll-behavior:auto;}
+  }
+
+  /* ---------- section shell ---------- */
+  section{
+    padding:100px 0;
+  }
+  .section-head{
+    max-width:600px;
+    margin-bottom:56px;
+  }
+  .section-eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:0.76rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
+  .section-head h2{
+    font-size:clamp(1.8rem, 3.4vw, 2.5rem);
+    font-weight:800;
+    letter-spacing:-0.01em;
+    margin-bottom:14px;
+  }
+  .section-head p{
+    color:var(--ink-muted);
+    font-size:1.05rem;
+  }
+
+  /* ---------- about ---------- */
+  .about{
+    background:var(--black);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .about-grid{
+    display:grid;
+    grid-template-columns:0.9fr 1.1fr;
+    gap:64px;
+    align-items:center;
+  }
+  .about-copy p{
+    color:var(--ink-muted);
+    font-size:1.05rem;
+    margin-bottom:18px;
+  }
+  .about-copy p:last-child{margin-bottom:0;}
+  .about-copy strong{color:var(--ink); font-weight:700;}
+
+  .tag-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .tag{
+    font-family:'Space Mono', monospace;
+    font-size:0.78rem;
+    border:1px solid var(--line);
+    padding:8px 14px;
+    border-radius:var(--radius);
+    color:var(--ink-muted);
+  }
+
+  /* ---------- features ---------- */
+  .features-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  .feature-card{
+    background:var(--black);
+    padding:36px 32px;
+    transition:background 0.25s ease;
+  }
+  .feature-card:hover{background:#0F1512;}
+  .feature-num{
+    font-family:'Space Mono', monospace;
+    font-size:0.78rem;
+    color:var(--gold);
+    margin-bottom:20px;
+    display:block;
+  }
+  .feature-icon{
+    width:40px; height:40px;
+    margin-bottom:22px;
+    color:var(--gold);
+  }
+  .feature-card h3{
+    font-size:1.12rem;
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .feature-card p{
+    color:var(--ink-muted);
+    font-size:0.94rem;
+    line-height:1.6;
+  }
+  .feature-card.wide{grid-column:span 3;}
+
+  @media(min-width:900px){
+    .feature-card:nth-child(4),
+    .feature-card:nth-child(5){grid-column:span 1.5;}
+  }
+
+  /* ---------- flow ---------- */
+  .flow{
+    background:var(--green);
+  }
+  .flow .section-head p{color:rgba(237,234,224,0.75);}
+  .flow-steps{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:0;
+    position:relative;
+  }
+  .flow-step{
+    padding:0 24px 0 0;
+    position:relative;
+  }
+  .flow-step:not(:last-child)::after{
+    content:"";
+    position:absolute;
+    top:22px;
+    right:0;
+    width:24px;
+    height:1px;
+    background:repeating-linear-gradient(90deg, var(--gold) 0 6px, transparent 6px 10px);
+  }
+  .flow-step .fn{
+    font-family:'Space Mono', monospace;
+    font-size:0.85rem;
+    color:var(--gold);
+    border:1px solid rgba(242,183,5,0.4);
+    width:44px; height:44px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:20px;
+  }
+  .flow-step h3{
+    font-size:1.08rem;
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .flow-step p{
+    color:rgba(237,234,224,0.7);
+    font-size:0.92rem;
+  }
+
+  /* ---------- metrics preview ---------- */
+  .metrics{
+    background:var(--black);
+  }
+  .metrics-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:60px;
+    align-items:center;
+  }
+  .metric-card{
+    background:var(--paper);
+    color:var(--black);
+    border-radius:var(--radius);
+    padding:30px;
+  }
+  .metric-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:14px 0;
+    border-bottom:1px solid rgba(0,0,0,0.1);
+  }
+  .metric-row:last-child{border-bottom:none;}
+  .metric-row .m-label{
+    font-size:0.86rem;
+    color:#4B4B4B;
+  }
+  .metric-row .m-value{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:1.15rem;
+    color:var(--green);
+  }
+  .bar{
+    height:6px;
+    background:rgba(0,59,31,0.15);
+    border-radius:4px;
+    overflow:hidden;
+    margin-top:10px;
+    width:100%;
+  }
+  .bar span{
+    display:block;
+    height:100%;
+    background:var(--green);
+    border-radius:4px;
+  }
+
+  /* ---------- final CTA ---------- */
+  .cta-final{
+    background:linear-gradient(180deg, var(--black) 0%, var(--green) 100%);
+    text-align:center;
+  }
+  .cta-final h2{
+    font-size:clamp(1.9rem, 4vw, 2.8rem);
+    font-weight:800;
+    max-width:620px;
+    margin:0 auto 18px;
+    letter-spacing:-0.01em;
+  }
+  .cta-final p{
+    color:var(--ink-muted);
+    max-width:480px;
+    margin:0 auto 36px;
+    font-size:1.05rem;
+  }
+  .cta-final .hero-actions{justify-content:center;}
+
+  /* ---------- footer ---------- */
+  footer{
+    background:var(--black);
+    border-top:1px solid var(--line);
+    padding:60px 0 30px;
+  }
+  .footer-grid{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr;
+    gap:48px;
+    margin-bottom:48px;
+  }
+  .footer-brand .logo{margin-bottom:16px;}
+  .footer-brand p{
+    color:var(--ink-muted);
+    font-size:0.92rem;
+    max-width:280px;
+  }
+  .footer-col h4{
+    font-family:'Space Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    margin-bottom:18px;
+  }
+  .footer-col a{
+    display:block;
+    color:var(--ink);
+    font-size:0.94rem;
+    padding:7px 0;
+    transition:color 0.2s ease;
+  }
+  .footer-col a:hover{color:var(--gold);}
+  .footer-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:26px;
+    border-top:1px solid var(--line);
+    font-size:0.82rem;
+    color:var(--ink-muted);
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .footer-bottom .mono{color:var(--ink-muted);}
+
+  /* ---------- reveal ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.in{
+    opacity:1;
+    transform:translateY(0);
+  }
+  @media(prefers-reduced-motion: reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+  }
+
+  /* ---------- responsive ---------- */
+  @media(max-width:900px){
+    .hero-grid{grid-template-columns:1fr; gap:56px;}
+    .about-grid{grid-template-columns:1fr; gap:40px;}
+    .metrics-grid{grid-template-columns:1fr; gap:40px;}
+    .features-grid{grid-template-columns:repeat(2,1fr);}
+    .feature-card.wide{grid-column:span 2;}
+    .flow-steps{grid-template-columns:repeat(2,1fr); row-gap:40px;}
+    .flow-step:nth-child(2)::after{display:none;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+    .footer-brand{grid-column:span 2;}
+  }
+  @media(max-width:640px){
+    .nav-links{
+      position:fixed;
+      top:70px; left:0; right:0;
+      background:var(--black);
+      flex-direction:column;
+      align-items:flex-start;
+      padding:24px 28px;
+      border-bottom:1px solid var(--line);
+      gap:18px;
+      display:none;
+    }
+    .nav-links.open{display:flex;}
+    .nav-toggle{display:block;}
+    .features-grid{grid-template-columns:1fr;}
+    .feature-card.wide{grid-column:span 1;}
+    .flow-steps{grid-template-columns:1fr;}
+    .flow-step::after{display:none !important;}
+    .footer-grid{grid-template-columns:1fr;}
+    .footer-brand{grid-column:span 1;}
+    section{padding:70px 0;}
+    .hero{padding-top:76px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="index.html" class="logo">
+        <span class="logo-mark">P</span>
+        Practik<span style="color:var(--gold)">App</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#funciones">Funciones</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#metricas">Métricas</a>
+        <a href="support.html">Soporte</a>
+        <a href="mailto:bleuwolfx@gmail.com" class="nav-cta">Contactanos</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Para kioscos y comercios de barrio</p>
+        <h1>El mostrador de tu kiosco,<br>ahora en tu bolsillo.</h1>
+        <p>Practik App carga productos, lee códigos de barra, controla el stock y registra cada venta para que sepas, en cualquier momento, cuánto tenés y cuánto ganás.</p>
+        <div class="hero-actions">
+          <a href="#funciones" class="btn btn-primary">Ver funciones</a>
+          <a href="mailto:bleuwolfx@gmail.com" class="btn btn-ghost">Escribinos</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <b>5</b>
+            <span>Módulos integrados</span>
+          </div>
+          <div class="hero-stat">
+            <b>1</b>
+            <span>Escaneo por producto</span>
+          </div>
+          <div class="hero-stat">
+            <b>24/7</b>
+            <span>Control de tu stock</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="receipt-holder">
+        <div class="receipt" role="img" aria-label="Recibo simulado mostrando las funciones de Practik App">
+          <div class="receipt-top">
+            <div class="r-brand">PRACTIK APP</div>
+            <div class="r-sub">TICKET DE FUNCIONES — HOY</div>
+          </div>
+
+          <div class="receipt-line n1">
+            <span class="r-name">Producto cargado</span>
+            <span class="r-val">✓</span>
+          </div>
+          <div class="receipt-line n2">
+            <span class="r-name">Código escaneado</span>
+            <span class="r-val">✓</span>
+          </div>
+          <div class="receipt-line n3">
+            <span class="r-name">Stock actualizado</span>
+            <span class="r-val">✓</span>
+          </div>
+          <div class="receipt-line n4">
+            <span class="r-name">Venta registrada</span>
+            <span class="r-val">$4.250</span>
+          </div>
+          <div class="receipt-line n5">
+            <span class="r-name">Alerta de reposición</span>
+            <span class="r-val">1</span>
+          </div>
+
+          <div class="receipt-divider"></div>
+          <div class="receipt-total">
+            <span>TOTAL FUNCIONES</span>
+            <span class="r-val">05</span>
+          </div>
+
+          <div class="receipt-barcode"></div>
+          <div class="receipt-code">PRACTIK · KIOSCO · GESTIÓN</div>
+        </div>
+      </div>
+    </div>
+    <div class="barcode"></div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about">
+    <div class="wrap about-grid">
+      <div class="reveal">
+        <p class="section-eyebrow">Qué es</p>
+        <h2 style="font-size:clamp(1.6rem,3vw,2.1rem); font-weight:800; margin-bottom:0;">Una sola app para llevar el kiosco al día.</h2>
+      </div>
+      <div class="about-copy reveal">
+        <p>Practik App es una <strong>solución móvil y web</strong> pensada para kioscos y pequeños comercios. Reemplaza el cuaderno, la calculadora y las notas sueltas por un sistema simple que ordena tu catálogo, tu stock y tus ventas en un solo lugar.</p>
+        <p>Cargás un producto una vez, lo escaneás las veces que quieras, y la app se encarga de avisarte cuándo un artículo está por agotarse y cuánto estás ganando en cada categoría.</p>
+        <div class="tag-list">
+          <span class="tag">Inventario</span>
+          <span class="tag">Código de barras</span>
+          <span class="tag">Control de stock</span>
+          <span class="tag">Ventas y compras</span>
+          <span class="tag">Métricas de rentabilidad</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="funciones">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-eyebrow">Funciones principales</p>
+        <h2>Todo lo que pasa en el mostrador, ordenado.</h2>
+        <p>Cinco módulos que trabajan juntos para que administrar tu comercio te lleve minutos, no horas.</p>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="features-grid reveal">
+        <div class="feature-card">
+          <span class="feature-num">01</span>
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="1"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg>
+          <h3>Gestión de inventario</h3>
+          <p>Registrá cada producto con marca, categoría, costo y precio de venta. Tu catálogo, siempre actualizado.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-num">02</span>
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M7 5v14M11 5v14M17 5v14"/></svg>
+          <h3>Lectura de código de barras</h3>
+          <p>Usá la cámara del celular para escanear y agregar productos al carrito o al inventario en segundos.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-num">03</span>
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v10M12 13l4-4M12 13l-4-4"/><path d="M4 15c0 3.3 3.6 6 8 6s8-2.7 8-6"/></svg>
+          <h3>Control de stock inteligente</h3>
+          <p>La app compara tu stock actual contra el mínimo recomendado y te avisa antes de que un producto se agote.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-num">04</span>
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
+          <h3>Historial de transacciones</h3>
+          <p>Cada venta y compra queda registrada con fecha, método de pago y los productos involucrados.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-num">05</span>
+          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+          <h3>Análisis y estadísticas</h3>
+          <p>Un panel con tus ventas, rentabilidad, métodos de pago más usados y las categorías con mayor rotación.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOW -->
+  <section id="como-funciona" class="flow">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="section-eyebrow" style="color:var(--gold)">Cómo funciona</p>
+        <h2>De la góndola al balance, en cuatro pasos.</h2>
+      </div>
+      <div class="flow-steps reveal">
+        <div class="flow-step">
+          <div class="fn">01</div>
+          <h3>Escaneás</h3>
+          <p>Apuntás la cámara al código de barras del producto.</p>
+        </div>
+        <div class="flow-step">
+          <div class="fn">02</div>
+          <h3>Cargás</h3>
+          <p>El producto entra al inventario o al carrito de venta.</p>
+        </div>
+        <div class="flow-step">
+          <div class="fn">03</div>
+          <h3>Vendés</h3>
+          <p>Registrás el pago y el stock se actualiza solo.</p>
+        </div>
+        <div class="flow-step">
+          <div class="fn">04</div>
+          <h3>Analizás</h3>
+          <p>Revisás tus métricas y sabés dónde estás ganando.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS -->
+  <section id="metricas" class="metrics">
+    <div class="wrap metrics-grid">
+      <div class="reveal">
+        <p class="section-eyebrow">Métricas</p>
+        <h2 style="font-size:clamp(1.7rem,3vw,2.3rem); font-weight:800; margin-bottom:16px;">Vas a ver tu kiosco en números.</h2>
+        <p style="color:var(--ink-muted); font-size:1.02rem;">Sin planillas ni cálculos a mano: la app arma el panel de rentabilidad y rotación por vos, a partir de cada venta que cargás.</p>
+      </div>
+      <div class="metric-card reveal">
+        <div class="metric-row">
+          <span class="m-label">Ventas del mes</span>
+          <span class="m-value">$318.400</span>
+        </div>
+        <div class="metric-row">
+          <span class="m-label">Método más usado</span>
+          <span class="m-value">Débito</span>
+        </div>
+        <div>
+          <div class="metric-row" style="border-bottom:none; padding-bottom:6px;">
+            <span class="m-label">Categoría con mayor rotación</span>
+            <span class="m-value">Bebidas</span>
+          </div>
+          <div class="bar"><span style="width:78%"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="cta-final">
+    <div class="wrap">
+      <h2 class="reveal">Dejá de anotar ventas en un cuaderno.</h2>
+      <p class="reveal">Escribinos y te contamos cómo empezar a usar Practik App en tu comercio.</p>
+      <div class="hero-actions reveal">
+        <a href="mailto:bleuwolfx@gmail.com" class="btn btn-primary">Escribir a Blue Wolfx</a>
+        <a href="support.html" class="btn btn-ghost">Ir a soporte</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">
+          <span class="logo-mark">P</span>
+          Practik<span style="color:var(--gold)">App</span>
+        </a>
+        <p>Gestión de inventario, ventas y métricas para kioscos y pequeños comercios. Un producto de Blue Wolfx.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="terms.html">Términos y condiciones</a>
+        <a href="privacy.html">Políticas de privacidad</a>
+        <a href="support.html">Soporte</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <a href="mailto:bleuwolfx@gmail.com">bleuwolfx@gmail.com</a>
+        <a href="#funciones">Funciones</a>
+      </div>
+    </div>
+    <div class="barcode dark" style="margin-bottom:26px;"></div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Blue Wolfx. Todos los derechos reservados.</span>
+      <span class="mono">PRACTIK · APP · v1.0</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  toggle.addEventListener('click', () => {
+    const isOpen = links.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', isOpen);
+    toggle.textContent = isOpen ? '✕' : '☰';
+  });
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    links.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.textContent = '☰';
+  }));
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, {threshold:0.15});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
